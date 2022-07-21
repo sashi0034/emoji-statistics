@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+      // "module": "CommonJS",
+    //   "noImplicitAny": false,
+      "strict": true,
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "esModuleInterop": true,
+    },
+  }
