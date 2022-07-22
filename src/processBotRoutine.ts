@@ -1,7 +1,7 @@
 import { App, GenericMessageEvent } from "@slack/bolt";
-import Config from "./config.json";
+import Config from "./config";
 import EmojiAnalyzer from "./emojiAnalyzer";
-import MessageSender from "./messageSender";
+import SlackActionWrapper from "./slackActionWrapper";
 
 export = socketProcess
 function socketProcess(){
@@ -12,7 +12,7 @@ function socketProcess(){
     });
     const config = Config
 
-    const sender = new MessageSender(app, config)
+    const sender = new SlackActionWrapper(app, config)
 
     app.event("message", async ({event, say}) =>{
         const messageEvent: GenericMessageEvent = event as GenericMessageEvent
@@ -24,6 +24,6 @@ function socketProcess(){
       
         console.log("Bolt app is running up.");
 
-        sender.post("This bot was initialized.")
+        sender.postMessage("This bot was initialized.")
     })();
 }

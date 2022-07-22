@@ -2,6 +2,8 @@
 
 export = EmojiAnalyzer
 class EmojiAnalyzer{
+    emojiList: Array<String> = []
+
     constructor(
         private readonly text: string
     ){
