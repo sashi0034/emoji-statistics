@@ -1,4 +1,4 @@
-import { App } from "@slack/bolt";
+import { App, Block, KnownBlock } from "@slack/bolt";
 import Config from "./config.json";
 
 export default
@@ -16,6 +16,17 @@ class SlackActionWrapper{
             token: this.config.botToken,
             channel: this.config.targetChannel,
             text: text,
+        })
+
+        if (!res.ok) console.error(res)
+    }
+
+    public async postBlockText(text: string, blocks: (KnownBlock | Block)[]){
+        const res = await this.app.client.chat.postMessage({
+            token: this.config.botToken,
+            channel: this.config.targetChannel,
+            text: text,
+            blocks: blocks
         })
 
         if (!res.ok) console.error(res)

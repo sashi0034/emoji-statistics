@@ -6,8 +6,13 @@ class EmojiProperty{
     public get totalCount() {
         return this.emojiCount;
     }
+    public get name(){
+        return this.emojiName
+    }
 
-    constructor(){}
+    constructor(
+        private readonly emojiName: string
+    ){}
 
     public addCount(){
         this.emojiCount++;
