@@ -1,9 +1,10 @@
 import { App, GenericMessageEvent } from "@slack/bolt";
-import Config from "./config";
+import Config from "./config.json";
 import EmojiAnalyzer from "./emojiAnalyzer";
 import SlackActionWrapper from "./slackActionWrapper";
+import log4js from "log4js";
 
-export = socketProcess
+export default
 function socketProcess(){
     const app: App = new App({
         token: Config.botToken,
@@ -12,18 +13,20 @@ function socketProcess(){
     });
     const config = Config
 
-    const sender = new SlackActionWrapper(app, config)
+    const slackAction = new SlackActionWrapper(app, config)
+    const analyzer = new EmojiAnalyzer(slackAction);
+    analyzer.initEmojiMap()
 
     app.event("message", async ({event, say}) =>{
         const messageEvent: GenericMessageEvent = event as GenericMessageEvent
-        const analyzer = new EmojiAnalyzer(messageEvent.text as string);
+        analyzer.analyse(messageEvent.text as string)
     });
 
     (async () => {
         await app.start();
       
-        console.log("Bolt app is running up.");
+        log4js.getLogger().info("Bolt app is running up.");
 
-        sender.postMessage("This bot was initialized.")
+        slackAction.postMessage("This bot was initialized.")
     })();
 }

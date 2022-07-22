@@ -6,5 +6,6 @@
       "moduleResolution": "node",
       "resolveJsonModule": true,
       "esModuleInterop": true,
+      "target": "es2020"
     },
   }
