@@ -16,7 +16,7 @@ class EmojiAnalyzer{
     public async restartTakeStatistics(){
         await this.initEmojiMap()
         this.startingDate = new Date()
-        console.log(this.startingDate.toLocaleDateString())
+        log4js.getLogger().info("restarted statistics.")
     }
 
     private async initEmojiMap(){
@@ -76,7 +76,7 @@ class EmojiAnalyzer{
 
         for (let i=0; i < rankingSortedList.length; ++i){
             const rankingIndex = i+1
-            const rankingBlock = this.getEmojiRankingTextBlock(rankingIndex, rankingSortedList[i])
+            const rankingBlock = EmojiAnalyzer.getEmojiRankingTextBlock(rankingIndex, rankingSortedList[i])
             baseBlocks.push(rankingBlock.text)
             baseBlocks.push(rankingBlock.divider)
         }
@@ -84,7 +84,7 @@ class EmojiAnalyzer{
         await this.slackAction.postBlockText("emoji ranking", baseBlocks)
     }
 
-    private getEmojiRankingTextBlock(rank: number, emoji: EmojiProperty){
+    private static getEmojiRankingTextBlock(rank: number, emoji: EmojiProperty){
         console.assert(emoji!=undefined && emoji!=null, "emoji has no value.")
 
         const emojiLiteral = ":" + emoji.name + ":"

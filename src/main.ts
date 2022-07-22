@@ -1,5 +1,5 @@
 
-import processBotRoutine from "./processBotRoutine";
+import {processBotRoutine} from "./processBotRoutine";
 import log4js from 'log4js'
 
 function main(){
