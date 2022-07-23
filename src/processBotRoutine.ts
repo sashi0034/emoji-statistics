@@ -4,6 +4,7 @@ import EmojiAnalyzer from "./emojiAnalyzer";
 import SlackActionWrapper from "./slackActionWrapper";
 import log4js from "log4js";
 import StatisticsUpdater from "./statisticsUpdater";
+import { getUserMentionText as getUserMentionLiteral } from "./util";
 
 export function processBotRoutine(){
     const app: App = new App({
@@ -19,6 +20,12 @@ export function processBotRoutine(){
     app.event("message", async ({event, say}) =>{
         const messageEvent: GenericMessageEvent = event as GenericMessageEvent
         analyzer.analyse(messageEvent.text as string)
+    });
+
+    app.command("/duration", async ({ command, ack, say }) => {
+        log4js.getLogger().info("slash command: duration")
+        updater.changeUpdatingDuration(command.text, say, getUserMentionLiteral(command.user_id))
+        await ack();
     });
 
     updater.startTimer();

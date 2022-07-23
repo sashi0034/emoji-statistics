@@ -1,6 +1,7 @@
 import EmojiAnalyzer from "./emojiAnalyzer";
 import log4js from "log4js";
 import Config from "./config.json"
+import { SayFn } from "@slack/bolt";
 
 export default
 class StatisticsUpdater{
@@ -34,6 +35,17 @@ class StatisticsUpdater{
             log4js.getLogger().info("Restarted taking statistics.");
 
         } , this.minuteMilliSec);
+    }
+
+    public changeUpdatingDuration(minuteStr: string, say: SayFn, userLiteral: string){
+        let numMinute = parseInt(minuteStr, 10);
+        const maxMinute = 24 * 60;
+        if (0 < numMinute && numMinute <= maxMinute){
+            this.updatingDurationMinute = numMinute;
+            say("Update duration changed to " + numMinute + " minutes by "+ userLiteral + ".");
+        }else{
+            say(userLiteral + " failed to change duration.");   
+        }
     }
 
 
