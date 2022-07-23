@@ -5,7 +5,7 @@ import { SayFn } from "@slack/bolt";
 
 export default
 class StatisticsUpdater{
-    private readonly minuteMilliSec = 60 * 100;
+    private readonly minuteMilliSec = 60 * 1000;
     private updatingTimer: NodeJS.Timer | null = null
     private updatingDurationMinute = Config.updateDuration;
 
