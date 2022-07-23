@@ -54,7 +54,16 @@ class EmojiAnalyzer{
         const startingDate = this.startingDate
         const endDate = new Date()
 
-        var baseBlocks = [
+        const baseBlocks: ({
+            type: string;
+            text: {
+                type: string;
+                text: string;
+                emoji?: boolean;
+            };
+        } | {
+            type: string;
+        })[] = [
             {
                 "type": "header",
                 "text": {
@@ -74,8 +83,14 @@ class EmojiAnalyzer{
             .sort((first, second)=>(first.totalCount < second.totalCount) ? 1 : -1);
         console.log(rankingSortedList)
 
+        let rankingIndex = 1;
+        let beforeCountInRanking = rankingSortedList[0];
         for (let i=0; i < rankingSortedList.length; ++i){
-            const rankingIndex = i+1
+            if (beforeCountInRanking!=rankingSortedList[i]){
+                rankingIndex++;;
+                beforeCountInRanking=rankingSortedList[i];
+            }
+
             const rankingBlock = EmojiAnalyzer.getEmojiRankingTextBlock(rankingIndex, rankingSortedList[i])
             baseBlocks.push(rankingBlock.text)
             baseBlocks.push(rankingBlock.divider)
@@ -92,9 +107,8 @@ class EmojiAnalyzer{
         const text = {
             "type": "section",
             "text": {
-                    "type": "plain_text",
-                    "text": rank + "th    " + emojiLiteral + "    " + emoji.totalCount + " uses: " +  emoji.name,
-                    "emoji": true
+                "type": "mrkdwn",
+                "text": "*" + rank + EmojiAnalyzer.getRankingSuffixText(rank) + "*    " + emojiLiteral + "    *" + emoji.totalCount + "* uses: " +  emoji.name                    ,
             }
         }
         const divider = {
@@ -104,6 +118,17 @@ class EmojiAnalyzer{
         return {
             text: text,
             divider: divider
+        }
+    }
+
+    private static getRankingSuffixText(orderIndex: number){
+        console.assert(orderIndex>0, "Order must be positive.")
+        
+        switch (orderIndex){
+            case 1: return "st";
+            case 2: return "nd";
+            case 3: return "rd";
+            default: return "th";
         }
     }
 
