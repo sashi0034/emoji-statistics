@@ -13,3 +13,12 @@ export function getFileLog(fileName: string, maxLength = 4000){
 	const result = input.slice( Math.max(0, input.length - maxLength), input.length - 1 );
 	return result
 }
+
+export function sleep(time: number): Promise<void>{
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			resolve()
+		}, time)
+	})
+}
+  

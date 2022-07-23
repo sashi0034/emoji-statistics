@@ -1,8 +1,7 @@
 import EmojiProperty from "./emojiProperty";
 import SlackActionWrapper from "./slackActionWrapper"
 import log4js from 'log4js'
-import { makeZeroPadding } from "./util";
-import { setTimeout } from "timers/promises";
+import { makeZeroPadding, sleep } from "./util";
 
 type BlockTextList = ({
     type: string; text: {
@@ -79,7 +78,7 @@ class EmojiAnalyzer{
 
     private async pushRankingBlocksToListWithPosting(rankingSortedList: EmojiProperty[], baseBlocks: BlockTextList) {
         let rankingIndex = 1;
-        let beforeCountInRanking: number = rankingSortedList[0].totalCount;
+        let beforeCountInRanking: number = rankingSortedList[0]!=undefined ? rankingSortedList[0].totalCount : 0;
 
         for (let i = 0; i < rankingSortedList.length; ++i) {
             if (beforeCountInRanking != rankingSortedList[i].totalCount) {
@@ -96,7 +95,7 @@ class EmojiAnalyzer{
                 await this.slackAction.postBlockText("emoji ranking", baseBlocks)
 
                 const postableInterval = 1000 * 2;
-                await setTimeout(postableInterval);
+                await sleep(postableInterval);
 
                 // Remove all in list.
                 baseBlocks.splice(0);
