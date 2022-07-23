@@ -5,6 +5,7 @@ import SlackActionWrapper from "./slackActionWrapper";
 import log4js from "log4js";
 import StatisticsUpdater from "./statisticsUpdater";
 import { getUserMentionText as getUserMentionLiteral } from "./util";
+import CommandNaming from "./commandRegister";
 
 export function processBotRoutine(){
     const app: App = new App({
@@ -22,8 +23,9 @@ export function processBotRoutine(){
         analyzer.analyse(messageEvent.text as string)
     });
 
-    app.command("/duration", async ({ command, ack, say }) => {
-        log4js.getLogger().info("slash command: duration")
+    const commandNaming = new CommandNaming(Config.botName);
+    app.command(commandNaming.getName("duration"), async ({ command, ack, say }) => {
+        log4js.getLogger().info(commandNaming.getName("duration"))
         updater.changeUpdatingDuration(command.text, say, getUserMentionLiteral(command.user_id))
         await ack();
     });

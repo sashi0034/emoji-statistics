@@ -55,16 +55,39 @@ class EmojiAnalyzer{
         const startingDate = this.startingDate
         const endDate = new Date()
 
-        const baseBlocks: ({
+        const baseBlocks = this.getBaseBlocksToPost(startingDate, endDate)
+
+        const rankingSortedList = 
+            Object.values(this.emojiMap)
+            .filter((prop)=>prop.totalCount>0)
+            .sort((first, second)=>(first.totalCount < second.totalCount) ? 1 : -1);
+        log4js.getLogger().info("sorted ranking list;")
+        console.log(rankingSortedList)
+
+        let rankingIndex = 1;
+        let beforeCountInRanking: number = rankingSortedList[0].totalCount;
+        for (let i=0; i < rankingSortedList.length; ++i){
+            if (beforeCountInRanking!=rankingSortedList[i].totalCount){
+                rankingIndex++;;
+                beforeCountInRanking=rankingSortedList[i].totalCount;
+            }
+
+            const rankingBlock = EmojiAnalyzer.getEmojiRankingTextBlock(rankingIndex, rankingSortedList[i])
+            baseBlocks.push(rankingBlock.text)
+            baseBlocks.push(rankingBlock.divider)
+        }
+
+        await this.slackAction.postBlockText("emoji ranking", baseBlocks)
+    }
+
+    private getBaseBlocksToPost(startingDate: Date, endDate: Date): ({
+        type: string; text: {
             type: string;
-            text: {
-                type: string;
-                text: string;
-                emoji?: boolean;
-            };
-        } | {
-            type: string;
-        })[] = [
+            text: string;
+            emoji?: boolean;
+        };
+    } | { type: string; })[] {
+        return [
             {
                 "type": "header",
                 "text": {
@@ -76,28 +99,7 @@ class EmojiAnalyzer{
             {
                 "type": "divider"
             }
-        ]
-
-        const rankingSortedList = 
-            Object.values(this.emojiMap)
-            .filter((prop)=>prop.totalCount>0)
-            .sort((first, second)=>(first.totalCount < second.totalCount) ? 1 : -1);
-        console.log(rankingSortedList)
-
-        let rankingIndex = 1;
-        let beforeCountInRanking = rankingSortedList[0];
-        for (let i=0; i < rankingSortedList.length; ++i){
-            if (beforeCountInRanking!=rankingSortedList[i]){
-                rankingIndex++;;
-                beforeCountInRanking=rankingSortedList[i];
-            }
-
-            const rankingBlock = EmojiAnalyzer.getEmojiRankingTextBlock(rankingIndex, rankingSortedList[i])
-            baseBlocks.push(rankingBlock.text)
-            baseBlocks.push(rankingBlock.divider)
-        }
-
-        await this.slackAction.postBlockText("emoji ranking", baseBlocks)
+        ];
     }
 
     private static getEmojiRankingTextBlock(rank: number, emoji: EmojiProperty){
