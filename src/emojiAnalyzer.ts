@@ -2,7 +2,15 @@ import EmojiProperty from "./emojiProperty";
 import SlackActionWrapper from "./slackActionWrapper"
 import log4js from 'log4js'
 import { makeZeroPadding } from "./util";
+import { setTimeout } from "timers/promises";
 
+type BlockTextList = ({
+    type: string; text: {
+        type: string;
+        text: string;
+        emoji?: boolean;
+    };
+} | { type: string; })[]
 
 export default
 class EmojiAnalyzer{
@@ -51,6 +59,7 @@ class EmojiAnalyzer{
         }
     }
 
+    // 統計情報を送信
     public async postStatistics(){
         const startingDate = this.startingDate
         const endDate = new Date()
@@ -61,32 +70,43 @@ class EmojiAnalyzer{
             Object.values(this.emojiMap)
             .filter((prop)=>prop.totalCount>0)
             .sort((first, second)=>(first.totalCount < second.totalCount) ? 1 : -1);
+
         log4js.getLogger().info("sorted ranking list;")
         console.log(rankingSortedList)
 
+        await this.pushRankingBlocksToListWithPosting(rankingSortedList, baseBlocks);
+    }
+
+    private async pushRankingBlocksToListWithPosting(rankingSortedList: EmojiProperty[], baseBlocks: BlockTextList) {
         let rankingIndex = 1;
         let beforeCountInRanking: number = rankingSortedList[0].totalCount;
-        for (let i=0; i < rankingSortedList.length; ++i){
-            if (beforeCountInRanking!=rankingSortedList[i].totalCount){
+
+        for (let i = 0; i < rankingSortedList.length; ++i) {
+            if (beforeCountInRanking != rankingSortedList[i].totalCount) {
                 rankingIndex++;;
-                beforeCountInRanking=rankingSortedList[i].totalCount;
+                beforeCountInRanking = rankingSortedList[i].totalCount;
             }
 
-            const rankingBlock = EmojiAnalyzer.getEmojiRankingTextBlock(rankingIndex, rankingSortedList[i])
-            baseBlocks.push(rankingBlock.text)
-            baseBlocks.push(rankingBlock.divider)
+            const rankingBlock = EmojiAnalyzer.getEmojiRankingTextBlock(rankingIndex, rankingSortedList[i]);
+            baseBlocks.push(rankingBlock);
+            baseBlocks.push(EmojiAnalyzer.getDividerBlockText());
+
+            const maxListLength = 40;
+            if (baseBlocks.length > maxListLength){
+                await this.slackAction.postBlockText("emoji ranking", baseBlocks)
+
+                const postableInterval = 1000 * 2;
+                await setTimeout(postableInterval);
+
+                // Remove all in list.
+                baseBlocks.splice(0);
+            }
         }
 
         await this.slackAction.postBlockText("emoji ranking", baseBlocks)
     }
 
-    private getBaseBlocksToPost(startingDate: Date, endDate: Date): ({
-        type: string; text: {
-            type: string;
-            text: string;
-            emoji?: boolean;
-        };
-    } | { type: string; })[] {
+    private getBaseBlocksToPost(startingDate: Date, endDate: Date): BlockTextList {
         return [
             {
                 "type": "header",
@@ -107,21 +127,22 @@ class EmojiAnalyzer{
 
         const emojiLiteral = ":" + emoji.name + ":"
         
-        const text = {
+        const result = {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": "*" + rank + EmojiAnalyzer.getRankingSuffixText(rank) + "*    " + emojiLiteral + "    *" + emoji.totalCount + "* uses: " +  emoji.name                    ,
             }
-        }
+        };
+        
+        return result;
+    }
+
+    private static getDividerBlockText(){
         const divider = {
             "type": "divider"
-        }
-        
-        return {
-            text: text,
-            divider: divider
-        }
+        };
+        return divider;
     }
 
     private static getRankingSuffixText(orderIndex: number){
