@@ -5,7 +5,7 @@ import { SayFn } from "@slack/bolt";
 
 export default
 class StatisticsUpdater{
-    private readonly minuteMilliSec = 60 * 1000;
+    private readonly milliSecPerMinute = StatisticsUpdater.getMilliSecPerMinute();
     private updatingTimer: NodeJS.Timer | null = null
     private updatingDurationMinute = Config.updateDuration;
 
@@ -15,6 +15,14 @@ class StatisticsUpdater{
         private readonly analyzer: EmojiAnalyzer
     ){
         analyzer.restartTakeStatistics();
+    }
+
+    private static getMilliSecPerMinute(): number{
+        if (Config.debug){
+            return 1 * 1000
+        }else{
+            return 60 * 1000
+        }
     }
 
     // 統計を公表し、更新
@@ -34,7 +42,7 @@ class StatisticsUpdater{
 
             log4js.getLogger().info("Restarted taking statistics.");
 
-        } , this.minuteMilliSec);
+        } , this.milliSecPerMinute);
     }
 
     public changeUpdatingDuration(minuteStr: string, say: SayFn, userLiteral: string){

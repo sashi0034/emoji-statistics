@@ -1,7 +1,8 @@
 import EmojiProperty from "./emojiProperty";
 import SlackActionWrapper from "./slackActionWrapper"
-import log4js from 'log4js'
 import { makeZeroPadding, sleep } from "./util";
+import log4js from 'log4js'
+import DefaultEmojiList from "./defaultEmojiList";
 
 type BlockTextList = ({
     type: string; text: {
@@ -13,11 +14,12 @@ type BlockTextList = ({
 
 export default
 class EmojiAnalyzer{
-    emojiMap: {[name: string]: EmojiProperty} = {}
-    startingDate: Date = new Date();
+    private emojiMap: {[name: string]: EmojiProperty} = {}
+    private startingDate: Date = new Date();
+    private readonly defaultEmojiList: DefaultEmojiList = new DefaultEmojiList();
 
     constructor(
-        private readonly slackAction: SlackActionWrapper,
+        private readonly slackAction: SlackActionWrapper
     ){}
 
     public async restartTakeStatistics(){
@@ -29,6 +31,9 @@ class EmojiAnalyzer{
     private async initEmojiMap(){
         const list = await this.slackAction.fetchEmojiList()
 
+        for (const emoji of this.defaultEmojiList.emojis){
+            this.emojiMap[emoji] = new EmojiProperty(emoji);
+        }
         for (const emoji of list){
             this.emojiMap[emoji] = new EmojiProperty(emoji);
         }
@@ -84,11 +89,11 @@ class EmojiAnalyzer{
             if (beforeCountInRanking != rankingSortedList[i].totalCount) {
                 rankingIndex++;;
                 beforeCountInRanking = rankingSortedList[i].totalCount;
+                baseBlocks.push(EmojiAnalyzer.getDividerBlockText());
             }
 
             const rankingBlock = EmojiAnalyzer.getEmojiRankingTextBlock(rankingIndex, rankingSortedList[i]);
             baseBlocks.push(rankingBlock);
-            baseBlocks.push(EmojiAnalyzer.getDividerBlockText());
 
             const maxListLength = 40;
             if (baseBlocks.length > maxListLength){
