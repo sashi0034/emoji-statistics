@@ -1,4 +1,4 @@
-import Emojis from "./data/emojis/slack_emoticons_to_html_unicode.json"
+import Emojis from "./data/emoji/slack_emoticons_to_html_unicode.json"
 import log4js from 'log4js'
 
 export default
