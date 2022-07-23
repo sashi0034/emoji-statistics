@@ -29,6 +29,7 @@ class EmojiAnalyzer{
 
     public analyse(text: string){
         if (this.countEmojiMap() == 0) return;
+        if (text==undefined) return;
 
         //const emojis = text.match(/:[^:]+:/g)?.map(name => name.replace(/:/g, ""))
         // 正規表現ですると、"[12:00]:blender:"のような表現を抽出できないためこちらで実行。
