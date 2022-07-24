@@ -1,4 +1,4 @@
-import EmojiAnalyzer from "./emojiAnalyzer";
+import EmojiStasticsPoster from "./emojiStasticsPoster";
 import log4js from "log4js";
 import Config from "./config.json"
 import { SayFn } from "@slack/bolt";
@@ -12,7 +12,7 @@ class StatisticsUpdater{
     private passedLastUpdatedMinute = 0
 
     public constructor(
-        private readonly analyzer: EmojiAnalyzer
+        private readonly analyzer: EmojiStasticsPoster
     ){
         analyzer.restartTakeStatistics();
     }

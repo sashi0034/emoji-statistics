@@ -1,6 +1,6 @@
 import { App, GenericMessageEvent } from "@slack/bolt";
 import Config from "./config.json";
-import EmojiAnalyzer from "./emojiAnalyzer";
+import EmojiStasticsPoster from "./emojiStasticsPoster";
 import SlackActionWrapper from "./slackActionWrapper";
 import log4js from "log4js";
 import StatisticsUpdater from "./statisticsUpdater";
@@ -15,7 +15,7 @@ export function processBotRoutine(){
     });
 
     const slackAction = new SlackActionWrapper(app, Config)
-    const analyzer = new EmojiAnalyzer(slackAction);
+    const analyzer = new EmojiStasticsPoster(slackAction);
     const updater = new StatisticsUpdater(analyzer)
 
     app.event("message", async ({event, say}) =>{

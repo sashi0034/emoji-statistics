@@ -13,7 +13,7 @@ type BlockTextList = ({
 } | { type: string; })[]
 
 export default
-class EmojiAnalyzer{
+class EmojiStasticsPoster{
     private emojiMap: {[name: string]: EmojiProperty} = {}
     private startingDate: Date = new Date();
     private readonly defaultEmojiList: DefaultEmojiList = new DefaultEmojiList();
@@ -89,10 +89,10 @@ class EmojiAnalyzer{
             if (beforeCountInRanking != rankingSortedList[i].totalCount) {
                 rankingIndex++;;
                 beforeCountInRanking = rankingSortedList[i].totalCount;
-                baseBlocks.push(EmojiAnalyzer.getDividerBlockText());
+                baseBlocks.push(EmojiStasticsPoster.getDividerBlockText());
             }
 
-            const rankingBlock = EmojiAnalyzer.getEmojiRankingTextBlock(rankingIndex, rankingSortedList[i]);
+            const rankingBlock = EmojiStasticsPoster.getEmojiRankingTextBlock(rankingIndex, rankingSortedList[i]);
             baseBlocks.push(rankingBlock);
 
             const maxListLength = 40;
@@ -135,7 +135,7 @@ class EmojiAnalyzer{
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "*" + rank + EmojiAnalyzer.getRankingSuffixText(rank) + "*    " + emojiLiteral + "    *" + emoji.totalCount + "* uses: " +  emoji.name                    ,
+                "text": "*" + rank + EmojiStasticsPoster.getRankingSuffixText(rank) + "*    " + emojiLiteral + "    *" + emoji.totalCount + "* uses: " +  emoji.name                    ,
             }
         };
         
