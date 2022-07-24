@@ -54,8 +54,8 @@ class EmojiStasticsPoster{
         // 正規表現ですると、"[12:00]:blender:"のような表現を抽出できないためこちらで実行。
         const emojis = text
             .split(":")
-            .filter(str => str!="")
-            .filter(str => str[1]!=" ")
+            .filter(str => str !==undefined && str!=="")
+            .filter(str => str[0]!==" ")
         
         if (emojis==null) return
 
