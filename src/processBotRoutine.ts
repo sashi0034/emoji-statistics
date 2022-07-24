@@ -11,6 +11,7 @@ export async function processBotRoutine(){
     const app: App = new App({
         token: Config.botToken,
         appToken: Config.appToken,
+        
         socketMode: true
     });
 
@@ -22,7 +23,11 @@ export async function processBotRoutine(){
 
     app.event("message", async ({event, say}) =>{
         const messageEvent: GenericMessageEvent = event as GenericMessageEvent
-        analyzer.analyse(messageEvent.text as string, ()=>{updater.updateProgressMessage();})
+        analyzer.appendEmojisByAnalyzingFromText(messageEvent.text as string, ()=>{updater.updateProgressMessage();})
+    });
+
+    app.event("reaction_added", async ({event, say}) =>{
+        analyzer.appendEmoji(event.reaction, ()=>{updater.updateProgressMessage();});
     });
 
     const commandNaming = new CommandNaming(Config.botName);

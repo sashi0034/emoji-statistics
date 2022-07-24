@@ -53,7 +53,7 @@ class StatisticsUpdater{
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Catched emoji count:    *" + count+"*",
+                    "text": "Catching emoji count:    *" + count+"*",
                 }
             },
             {

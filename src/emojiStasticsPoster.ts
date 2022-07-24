@@ -46,32 +46,44 @@ class EmojiStasticsPoster{
         }
     }
 
-    public analyse(text: string, onCompleted: ()=>void){
+    public appendEmojisByAnalyzingFromText(text: string, onCompleted: ()=>void){
         if (this.countEmojiMap() == 0) return;
         if (text==undefined) return;
 
         //const emojis = text.match(/:[^:]+:/g)?.map(name => name.replace(/:/g, ""))
         // 正規表現ですると、"[12:00]:blender:"のような表現を抽出できないためこちらで実行。
-        const emojis = text.split(":")
+        const emojis = text
+            .split(":")
+            .filter(str => str!="")
+            .filter(str => str[1]!=" ")
         
         if (emojis==null) return
 
         let isFounded = false;
         for (let i=0; i<emojis.length; ++i){
             const emoji = emojis[i]
-            const foundEmoji = this.emojiMap[emoji]
 
-            if (foundEmoji!=undefined){
+            const onFound = () => {
                 isFounded = true;
-                foundEmoji.addCount();
-                this.catchedEmojiCounter.addCount();
-                log4js.getLogger().info("count up emoji: " + emoji + ", " + foundEmoji.totalCount)
 
-                // "":blender:blender:blender:"のような表現を除くため、iを余分に進める
+                // ":blender:blender:blender:"のような表現を除くため、iを余分に進める
                 i++;
             }
+
+            this.appendEmoji(emoji, onFound);
         }
         if (isFounded) onCompleted();
+    }
+
+    public appendEmoji(emoji: string, onFound: ()=>void){
+        const foundEmoji = this.emojiMap[emoji]
+
+        if (foundEmoji==undefined) return;
+
+        foundEmoji.addCount();
+        this.catchedEmojiCounter.addCount();
+        log4js.getLogger().info("count up emoji: " + emoji + ", " + foundEmoji.totalCount)
+        onFound();
     }
 
     // 統計情報を送信
