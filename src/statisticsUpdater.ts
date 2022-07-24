@@ -2,6 +2,16 @@ import EmojiStasticsPoster from "./emojiStasticsPoster";
 import log4js from "log4js";
 import Config from "./config.json"
 import { SayFn } from "@slack/bolt";
+import SlackActionWrapper from "./slackActionWrapper";
+
+class PostedMessageInfo{
+    public constructor(
+        public readonly timeStamp: string | undefined
+    ){}
+    public isValid(){
+        return this.timeStamp != undefined;
+    }
+}
 
 export default
 class StatisticsUpdater{
@@ -11,10 +21,45 @@ class StatisticsUpdater{
 
     private passedLastUpdatedMinute = 0
 
+    private postingProgressMessage: PostedMessageInfo = new PostedMessageInfo(undefined);
+
     public constructor(
-        private readonly analyzer: EmojiStasticsPoster
+        private readonly statisticsPoster: EmojiStasticsPoster,
+        private readonly slackAction: SlackActionWrapper
     ){
-        analyzer.restartTakeStatistics();
+        this.restartStatistics();
+    }
+
+    private async restartStatistics(){
+        this.statisticsPoster.restartTakeStatistics();
+        const postedResult = await this.postCatedEmojiCountBlock(0);
+        this.postingProgressMessage = new PostedMessageInfo(postedResult.ts);
+    }
+
+    private postCatedEmojiCountBlock(count: number) {
+        return this.slackAction.postBlockText(this.getTextInCatcedEmojiCountBlock(), this.getCatcedEmojiCountBlock(count));
+    }
+
+    private getTextInCatcedEmojiCountBlock(){
+        return "catcehd emoji count";
+    }
+
+    private getCatcedEmojiCountBlock(count: number){
+        return [
+            // {
+            //     "type": "divider"
+            // },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Catched emoji count:    *" + count+"*",
+                }
+            },
+            {
+                "type": "divider"
+            }
+        ]
     }
 
     private static getMilliSecPerMinute(): number{
@@ -24,6 +69,15 @@ class StatisticsUpdater{
             return 60 * 1000
         }
     }
+
+
+    public async updateProgressMessage(){
+        if (this.postingProgressMessage.isValid()===false) return;
+
+        const updatingContent = this.getCatcedEmojiCountBlock(this.statisticsPoster.numCatchedEmoji)
+        await this.slackAction.updateBlockText(this.postingProgressMessage.timeStamp as string, this.getTextInCatcedEmojiCountBlock(), updatingContent)
+    }
+
 
     // 統計を公表し、更新
     public startTimer(){
@@ -36,9 +90,9 @@ class StatisticsUpdater{
 
             this.passedLastUpdatedMinute = 0;
             
-            await this.analyzer.postStatistics();
+            await this.statisticsPoster.postStatistics();
 
-            this.analyzer.restartTakeStatistics();
+            this.restartStatistics();
 
             log4js.getLogger().info("Restarted taking statistics.");
 

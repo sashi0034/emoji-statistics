@@ -3,6 +3,7 @@ import SlackActionWrapper from "./slackActionWrapper"
 import { makeZeroPadding, sleep } from "./util";
 import log4js from 'log4js'
 import DefaultEmojiList from "./defaultEmojiList";
+import IntCounter from "./intCounter";
 
 type BlockTextList = ({
     type: string; text: {
@@ -17,6 +18,11 @@ class EmojiStasticsPoster{
     private emojiMap: {[name: string]: EmojiProperty} = {}
     private startingDate: Date = new Date();
     private readonly defaultEmojiList: DefaultEmojiList = new DefaultEmojiList();
+    private catchedEmojiCounter: IntCounter = new IntCounter();
+
+    public get numCatchedEmoji(){
+        return this.catchedEmojiCounter.count;
+    }
 
     constructor(
         private readonly slackAction: SlackActionWrapper
@@ -24,6 +30,7 @@ class EmojiStasticsPoster{
 
     public async restartTakeStatistics(){
         await this.initEmojiMap()
+        this.catchedEmojiCounter.reset();
         this.startingDate = new Date()
         log4js.getLogger().info("restarted statistics.")
     }
@@ -39,7 +46,7 @@ class EmojiStasticsPoster{
         }
     }
 
-    public analyse(text: string){
+    public analyse(text: string, onCompleted: ()=>void){
         if (this.countEmojiMap() == 0) return;
         if (text==undefined) return;
 
@@ -49,18 +56,22 @@ class EmojiStasticsPoster{
         
         if (emojis==null) return
 
+        let isFounded = false;
         for (let i=0; i<emojis.length; ++i){
             const emoji = emojis[i]
             const foundEmoji = this.emojiMap[emoji]
 
             if (foundEmoji!=undefined){
-                foundEmoji.addCount()
+                isFounded = true;
+                foundEmoji.addCount();
+                this.catchedEmojiCounter.addCount();
                 log4js.getLogger().info("count up emoji: " + emoji + ", " + foundEmoji.totalCount)
 
                 // "":blender:blender:blender:"のような表現を除くため、iを余分に進める
                 i++;
             }
         }
+        if (isFounded) onCompleted();
     }
 
     // 統計情報を送信

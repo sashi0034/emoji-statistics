@@ -7,7 +7,7 @@ import StatisticsUpdater from "./statisticsUpdater";
 import { getUserMentionText as getUserMentionLiteral } from "./util";
 import CommandNaming from "./commandRegister";
 
-export function processBotRoutine(){
+export async function processBotRoutine(){
     const app: App = new App({
         token: Config.botToken,
         appToken: Config.appToken,
@@ -15,12 +15,14 @@ export function processBotRoutine(){
     });
 
     const slackAction = new SlackActionWrapper(app, Config)
+    await slackAction.postMessage("Initializing...")
+
     const analyzer = new EmojiStasticsPoster(slackAction);
-    const updater = new StatisticsUpdater(analyzer)
+    const updater = new StatisticsUpdater(analyzer, slackAction)
 
     app.event("message", async ({event, say}) =>{
         const messageEvent: GenericMessageEvent = event as GenericMessageEvent
-        analyzer.analyse(messageEvent.text as string)
+        analyzer.analyse(messageEvent.text as string, ()=>{updater.updateProgressMessage();})
     });
 
     const commandNaming = new CommandNaming(Config.botName);
@@ -32,13 +34,9 @@ export function processBotRoutine(){
 
     updater.startTimer();
     
-    (async () => {
-        await app.start();
-      
-        log4js.getLogger().info("Bolt app is running up.");
-
-        slackAction.postMessage("Initialized.")
-    })();
+    await app.start();
+    
+    log4js.getLogger().info("Bolt app is running up.");
 }
 
 
