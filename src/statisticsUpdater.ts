@@ -65,8 +65,8 @@ class StatisticsUpdater{
                 "type": "context",
                 "elements": [
                     {
-                        "type": "Last updated:    " + this.getDateText(new Date()),
-                        "text": "1st :cat: 23 uses: cat",
+                        "type": "plain_text",
+                        "text": "Last updated:    " + this.getDateText(new Date()),
                         "emoji": true
                     }
                 ]
