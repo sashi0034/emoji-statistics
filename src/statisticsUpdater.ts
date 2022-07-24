@@ -112,7 +112,8 @@ class StatisticsUpdater{
     }
 
     private initUpdateProgressMessageTimer() {
-        const updatingProgressDuration = 3 * this.milliSecPerMinute;
+        const updatingProgressDuration = 3 * 1000;
+        
         const updatingProgressTimer = setInterval(async () => {
             if (this.isNeedToPostingProgressMessage === false)
                 return;
