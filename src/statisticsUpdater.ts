@@ -22,6 +22,7 @@ class StatisticsUpdater{
     private passedLastUpdatedMinute = 0
 
     private postingProgressMessage: PostedMessageInfo = new PostedMessageInfo(undefined);
+    private isNeedToPostingProgressMessage = false
 
     public constructor(
         private readonly statisticsPoster: EmojiStasticsPoster,
@@ -71,32 +72,53 @@ class StatisticsUpdater{
     }
 
 
-    public async updateProgressMessage(){
+    public async notifyUpdateProgressMessage(){
+        this.isNeedToPostingProgressMessage = true;
+    }
+
+    private async updateProgressMessage(){
         if (this.postingProgressMessage.isValid()===false) return;
 
         const updatingContent = this.getCatcedEmojiCountBlock(this.statisticsPoster.numCatchedEmoji)
         await this.slackAction.updateBlockText(this.postingProgressMessage.timeStamp as string, this.getTextInCatcedEmojiCountBlock(), updatingContent)
     }
 
-
     // 統計を公表し、更新
     public startTimer(){
-        this.updatingTimer = setInterval(async ()=>{
+
+        this.initUpdatingTimer();
+
+        this.initUpdateProgressMessageTimer();
+    }
+
+    private initUpdatingTimer() {
+        this.updatingTimer = setInterval(async () => {
             this.passedLastUpdatedMinute++;
-            
+
             log4js.getLogger().info("Start updating timer: " + this.passedLastUpdatedMinute + " min");
-            
-            if (this.passedLastUpdatedMinute<this.updatingDurationMinute) return;
+
+            if (this.passedLastUpdatedMinute < this.updatingDurationMinute)
+                return;
 
             this.passedLastUpdatedMinute = 0;
-            
+
             await this.statisticsPoster.postStatistics();
 
             this.restartStatistics();
 
             log4js.getLogger().info("Restarted taking statistics.");
 
-        } , this.milliSecPerMinute);
+        }, this.milliSecPerMinute);
+    }
+
+    private initUpdateProgressMessageTimer() {
+        const updatingProgressDuration = 3 * this.milliSecPerMinute;
+        const updatingProgressTimer = setInterval(async () => {
+            if (this.isNeedToPostingProgressMessage === false)
+                return;
+            this.isNeedToPostingProgressMessage = false;
+            this.updateProgressMessage();
+        }, updatingProgressDuration);
     }
 
     public changeUpdatingDuration(minuteStr: string, say: SayFn, userLiteral: string){

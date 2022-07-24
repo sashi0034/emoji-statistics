@@ -23,11 +23,11 @@ export async function processBotRoutine(){
 
     app.event("message", async ({event, say}) =>{
         const messageEvent: GenericMessageEvent = event as GenericMessageEvent
-        analyzer.appendEmojisByAnalyzingFromText(messageEvent.text as string, ()=>{updater.updateProgressMessage();})
+        analyzer.appendEmojisByAnalyzingFromText(messageEvent.text as string, ()=>{updater.notifyUpdateProgressMessage();})
     });
 
     app.event("reaction_added", async ({event, say}) =>{
-        analyzer.appendEmoji(event.reaction, ()=>{updater.updateProgressMessage();});
+        analyzer.appendEmoji(event.reaction, ()=>{updater.notifyUpdateProgressMessage();});
     });
 
     const commandNaming = new CommandNaming(Config.botName);
