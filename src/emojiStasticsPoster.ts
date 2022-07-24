@@ -173,7 +173,7 @@ class EmojiStasticsPoster{
 
     private getDateText(date: Date){
         const dateText = 
-            makeZeroPadding(date.getMonth(), 2) + "/" + makeZeroPadding(date.getDay(), 2) + " " +
+            makeZeroPadding(date.getMonth()+1, 2) + "/" + makeZeroPadding(date.getDate(), 2) + " " +
             makeZeroPadding(date.getHours(), 2) + ":" + makeZeroPadding(date.getMinutes(), 2)
         return dateText;
     }
