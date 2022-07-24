@@ -3,6 +3,7 @@ import log4js from "log4js";
 import Config from "./config.json"
 import { SayFn } from "@slack/bolt";
 import SlackActionWrapper from "./slackActionWrapper";
+import { makeZeroPadding } from "./util";
 
 class PostedMessageInfo{
     public constructor(
@@ -47,9 +48,12 @@ class StatisticsUpdater{
 
     private getCatcedEmojiCountBlock(count: number){
         return [
-            // {
-            //     "type": "divider"
-            // },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "divider"
+            },
             {
                 "type": "section",
                 "text": {
@@ -58,9 +62,26 @@ class StatisticsUpdater{
                 }
             },
             {
-                "type": "divider"
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "Last updated:    " + this.getDateText(new Date()),
+                        "text": "1st :cat: 23 uses: cat",
+                        "emoji": true
+                    }
+                ]
             }
+            // {
+            //     "type": "divider"
+            // }
         ]
+    }
+
+    private getDateText(date: Date){
+        const dateText = 
+            makeZeroPadding(date.getMonth()+1, 2) + "/" + makeZeroPadding(date.getDate(), 2) + " " +
+            makeZeroPadding(date.getHours(), 2) + ":" + makeZeroPadding(date.getMinutes(), 2) + ":" + makeZeroPadding(date.getSeconds(), 2)
+        return dateText;
     }
 
     private static getMilliSecPerMinute(): number{
