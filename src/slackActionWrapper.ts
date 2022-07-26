@@ -64,6 +64,30 @@ class SlackActionWrapper{
         return result
     }
 
+    public async addPinsItem(timeStamp: string){
+        const result = await this.app.client.pins.add({
+            token: this.config.botToken,
+            channel: this.config.targetChannel,
+            timestamp: timeStamp
+        })
+
+        if (!result.ok) console.error(result)
+
+        return result
+    }
+
+    public async removePinsItem(timeStamp: string){
+        const result = await this.app.client.pins.remove({
+            token: this.config.botToken,
+            channel: this.config.targetChannel,
+            timestamp: timeStamp
+        })
+
+        if (!result.ok) console.error(result)
+
+        return result
+    }
+
     public async fetchEmojiList(): Promise<Array<string>>{
         let result: Array<string> = [];
 

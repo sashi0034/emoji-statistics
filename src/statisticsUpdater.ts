@@ -45,6 +45,7 @@ class StatisticsUpdater{
         this.statisticsPoster.restartTakeStatistics();
         const postedResult = await this.postCatedEmojiCountBlock(0);
         this.postingProgressMessage = new PostedMessageInfo(postedResult.ts);
+        await this.slackAction.addPinsItem(this.postingProgressMessage.timeStamp as string);
     }
 
     private postCatedEmojiCountBlock(count: number) {
@@ -146,17 +147,20 @@ class StatisticsUpdater{
             if (this.passedLastUpdatedMinute < this.finishingDurationMinute)
                 return;
 
-            this.passedLastUpdatedMinute = 0;
-
-            await this.statisticsPoster.postStatistics();
-
-            if (this.canRestart){
-                this.restartProcess();
-            }else{
-                this.isAliveSelf = false;
-            }
-
+            await this.updateFinal();
         }, this.milliSecPerMinute);
+    }
+
+    private async updateFinal() {
+        this.isAliveSelf = false;
+
+        this.passedLastUpdatedMinute = 0;
+
+        await this.statisticsPoster.postStatistics();
+
+        await this.slackAction.removePinsItem(this.postingProgressMessage.timeStamp as string);
+
+         // if (this.canRestart) this.restartProcess();
     }
 
     // Maybe unused.
@@ -165,6 +169,8 @@ class StatisticsUpdater{
         this.restartStatistics();
 
         log4js.getLogger().info("Restarted taking statistics.");
+
+        this.isAliveSelf = true;
     }
 
     private initUpdateProgressMessageTimer() {
