@@ -1,6 +1,6 @@
 import { App, GenericMessageEvent } from "@slack/bolt";
 import Config from "./config.json";
-import EmojiStasticsPoster from "./emojiStasticsPoster";
+import EmojiStasticsPoster from "./stasticsPoster";
 import SlackActionWrapper from "./slackActionWrapper";
 import log4js from "log4js";
 import StatisticsUpdater from "./statisticsUpdater";

@@ -1,4 +1,4 @@
-import EmojiStasticsPoster from "./emojiStasticsPoster";
+import EmojiStasticsPoster from "./stasticsPoster";
 import log4js from "log4js";
 import Config from "./config.json"
 import { SayFn } from "@slack/bolt";
