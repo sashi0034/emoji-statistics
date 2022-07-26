@@ -1,12 +1,13 @@
 import { App, GenericMessageEvent } from "@slack/bolt";
 import Config from "./config.json";
-import EmojiStasticsPoster from "./stasticsPoster";
+import StasticsContributor from "./stasticsContributor";
 import SlackActionWrapper from "./slackActionWrapper";
 import log4js from "log4js";
 import StatisticsUpdater from "./statisticsUpdater";
-import { getUserMentionText as getUserMentionLiteral } from "./util";
+import { getUserMentionLiteral as getUserMentionLiteral } from "./util";
 import CommandNaming from "./commandRegister";
 import { connect } from "http2";
+import EmojiStasticsController from "./emojiStatisticsController";
 
 export async function processBotRoutine(){
     const app: App = new App({
@@ -19,41 +20,44 @@ export async function processBotRoutine(){
     const slackAction = new SlackActionWrapper(app, Config)
     await slackAction.postMessage("Initializing...")
 
-    const analyzer = new EmojiStasticsPoster(slackAction);
-    const updater = new StatisticsUpdater(analyzer, slackAction)
+    const commandNaming = new CommandNaming(Config.botName);
+
+    const statisticsController = new EmojiStasticsController(slackAction, commandNaming);
 
     app.event("message", async ({event, say}) =>{
         const messageEvent: GenericMessageEvent = event as GenericMessageEvent
-        analyzer.countUpEmojisByAnalyzingFromText(messageEvent.text as string, ()=>{updater.notifyUpdateProgressMessage();})
+        statisticsController.onReceivedMessage(messageEvent)
     });
 
     app.event("reaction_added", async ({event, say}) =>{
-        analyzer.coutUpEmoji(event.reaction, ()=>{updater.notifyUpdateProgressMessage();});
+        statisticsController.onReactionAdded(event);
     });
 
     app.event("emoji_changed", async ({event, say}) =>{
-        log4js.getLogger().info("received emoji_changed:", event)
-        const newEmojiName = event.name;
-
-        if (event.subtype!=="add") return;
-        if (newEmojiName===undefined) return;
-
-        analyzer.registerNewEmoji(newEmojiName);
-        log4js.getLogger().info("append new emoji: " + newEmojiName);
+        statisticsController.onEmojiChanged(event);
     });
 
-    const commandNaming = new CommandNaming(Config.botName);
-    app.command(commandNaming.getName("duration"), async ({ command, ack, say }) => {
-        log4js.getLogger().info(commandNaming.getName("duration"))
-        updater.changeUpdatingDuration(command.text, say, getUserMentionLiteral(command.user_id))
+    // app.command(commandNaming.getName("duration"), async ({ command, ack, say }) => {
+    //     log4js.getLogger().info(commandNaming.getName("duration"))
+    //     updater.changeUpdatingDuration(command.text, say, getUserMentionLiteral(command.user_id))
+    //     await ack();
+    // });
+
+    app.command(commandNaming.getName("new"), async ({ command, ack, say }) => {
         await ack();
+        await statisticsController.onCommandNew(command, say);
+    });
+    
+    app.command(commandNaming.getName("publish"), async ({ command, ack, say }) => {
+        await ack();
+        await statisticsController.onCommandPublish();
     });
 
-    updater.startTimer();
-    
     await app.start();
-    
+
     log4js.getLogger().info("Bolt app is running up.");
+
+    await slackAction.postMessage("App is running up.");
 }
 
 

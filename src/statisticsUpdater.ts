@@ -1,4 +1,4 @@
-import EmojiStasticsPoster from "./stasticsPoster";
+import EmojiStasticsPoster from "./stasticsContributor";
 import log4js from "log4js";
 import Config from "./config.json"
 import { SayFn } from "@slack/bolt";
@@ -18,17 +18,26 @@ export default
 class StatisticsUpdater{
     private readonly milliSecPerMinute = StatisticsUpdater.getMilliSecPerMinute();
     private updatingTimer: NodeJS.Timer | null = null
-    private updatingDurationMinute = Config.updateDuration;
-
+    
+    private finishingDurationMinute;
     private passedLastUpdatedMinute = 0
 
     private postingProgressMessage: PostedMessageInfo = new PostedMessageInfo(undefined);
     private isNeedToPostingProgressMessage = false
 
+    private readonly canRestart = false;
+
+    private isAliveSelf = true;
+    public get isAlive(){
+        return this.isAliveSelf;
+    }
+
     public constructor(
         private readonly statisticsPoster: EmojiStasticsPoster,
-        private readonly slackAction: SlackActionWrapper
+        private readonly slackAction: SlackActionWrapper,
+        finishingDurationMinute: number
     ){
+        this.finishingDurationMinute = finishingDurationMinute;
         this.restartStatistics();
     }
 
@@ -46,6 +55,10 @@ class StatisticsUpdater{
         return "catcehd emoji count";
     }
 
+    private calcLeftMinutesUntilFinish(){
+        return this.finishingDurationMinute - this.passedLastUpdatedMinute;
+    }
+
     private getCatcedEmojiCountBlock(count: number){
         return [
             {
@@ -60,6 +73,16 @@ class StatisticsUpdater{
                     "type": "mrkdwn",
                     "text": "Catching emoji count:    *" + count+"*",
                 }
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "plain_text",
+                        "text": "Fisnishing Time:    " + this.calcLeftMinutesUntilFinish() + " minutes left",
+                        "emoji": true
+                    }
+                ]
             },
             {
                 "type": "context",
@@ -114,22 +137,34 @@ class StatisticsUpdater{
 
     private initUpdatingTimer() {
         this.updatingTimer = setInterval(async () => {
+            if (!this.isAlive) return;
+
             this.passedLastUpdatedMinute++;
 
             log4js.getLogger().info("Start updating timer: " + this.passedLastUpdatedMinute + " min");
 
-            if (this.passedLastUpdatedMinute < this.updatingDurationMinute)
+            if (this.passedLastUpdatedMinute < this.finishingDurationMinute)
                 return;
 
             this.passedLastUpdatedMinute = 0;
 
             await this.statisticsPoster.postStatistics();
 
-            this.restartStatistics();
-
-            log4js.getLogger().info("Restarted taking statistics.");
+            if (this.canRestart){
+                this.restartProcess();
+            }else{
+                this.isAliveSelf = false;
+            }
 
         }, this.milliSecPerMinute);
+    }
+
+    // Maybe unused.
+    // 必要になるかもしれないので残す
+    private restartProcess() {
+        this.restartStatistics();
+
+        log4js.getLogger().info("Restarted taking statistics.");
     }
 
     private initUpdateProgressMessageTimer() {
@@ -143,16 +178,16 @@ class StatisticsUpdater{
         }, updatingProgressDuration);
     }
 
-    public changeUpdatingDuration(minuteStr: string, say: SayFn, userLiteral: string){
-        let numMinute = parseInt(minuteStr, 10);
-        const maxMinute = 24 * 60;
-        if (0 < numMinute && numMinute <= maxMinute){
-            this.updatingDurationMinute = numMinute;
-            say("Update duration changed to " + numMinute + " minutes by "+ userLiteral + ".");
-        }else{
-            say(userLiteral + " failed to change duration.");   
-        }
-    }
+    // public changeUpdatingDuration(minuteStr: string, say: SayFn, userLiteral: string){
+    //     let numMinute = parseInt(minuteStr, 10);
+    //     const maxMinute = 24 * 60;
+    //     if (0 < numMinute && numMinute <= maxMinute){
+    //         this.updatingDurationMinute = numMinute;
+    //         say("Update duration changed to " + numMinute + " minutes by "+ userLiteral + ".");
+    //     }else{
+    //         say(userLiteral + " failed to change duration.");   
+    //     }
+    // }
 
 
 }
