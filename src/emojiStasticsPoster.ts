@@ -39,14 +39,14 @@ class EmojiStasticsPoster{
         const list = await this.slackAction.fetchEmojiList()
 
         for (const emoji of this.defaultEmojiList.emojis){
-            this.emojiMap[emoji] = new EmojiProperty(emoji);
+            this.registerNewEmoji(emoji);
         }
         for (const emoji of list){
-            this.emojiMap[emoji] = new EmojiProperty(emoji);
+            this.registerNewEmoji(emoji);
         }
     }
 
-    public appendEmojisByAnalyzingFromText(text: string, onCompleted: ()=>void){
+    public countUpEmojisByAnalyzingFromText(text: string, onCompleted: ()=>void){
         if (this.countEmojiMap() == 0) return;
         if (text==undefined) return;
 
@@ -70,12 +70,12 @@ class EmojiStasticsPoster{
                 i++;
             }
 
-            this.appendEmoji(emoji, onFound);
+            this.coutUpEmoji(emoji, onFound);
         }
         if (isFounded) onCompleted();
     }
 
-    public appendEmoji(emoji: string, onFound: ()=>void){
+    public coutUpEmoji(emoji: string, onFound: ()=>void){
         const foundEmoji = this.emojiMap[emoji]
 
         if (foundEmoji==undefined) return;
@@ -84,6 +84,13 @@ class EmojiStasticsPoster{
         this.catchedEmojiCounter.addCount();
         log4js.getLogger().info("count up emoji: " + emoji + ", " + foundEmoji.totalCount)
         onFound();
+    }
+
+    public registerNewEmoji(emoji: string){
+        if (emoji===undefined) return;
+        if (emoji==="") return;
+        
+        this.emojiMap[emoji] = new EmojiProperty(emoji);
     }
 
     // 統計情報を送信
