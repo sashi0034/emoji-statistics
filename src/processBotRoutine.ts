@@ -6,6 +6,7 @@ import log4js from "log4js";
 import StatisticsUpdater from "./statisticsUpdater";
 import { getUserMentionText as getUserMentionLiteral } from "./util";
 import CommandNaming from "./commandRegister";
+import { connect } from "http2";
 
 export async function processBotRoutine(){
     const app: App = new App({
@@ -23,11 +24,22 @@ export async function processBotRoutine(){
 
     app.event("message", async ({event, say}) =>{
         const messageEvent: GenericMessageEvent = event as GenericMessageEvent
-        analyzer.appendEmojisByAnalyzingFromText(messageEvent.text as string, ()=>{updater.notifyUpdateProgressMessage();})
+        analyzer.countUpEmojisByAnalyzingFromText(messageEvent.text as string, ()=>{updater.notifyUpdateProgressMessage();})
     });
 
     app.event("reaction_added", async ({event, say}) =>{
-        analyzer.appendEmoji(event.reaction, ()=>{updater.notifyUpdateProgressMessage();});
+        analyzer.coutUpEmoji(event.reaction, ()=>{updater.notifyUpdateProgressMessage();});
+    });
+
+    app.event("emoji_changed", async ({event, say}) =>{
+        log4js.getLogger().info("received emoji_changed:", event)
+        const newEmojiName = event.name;
+
+        if (event.subtype!=="add") return;
+        if (newEmojiName===undefined) return;
+
+        analyzer.registerNewEmoji(newEmojiName);
+        log4js.getLogger().info("append new emoji: " + newEmojiName);
     });
 
     const commandNaming = new CommandNaming(Config.botName);
