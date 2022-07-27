@@ -42,9 +42,14 @@ class ProcessCollection{
             await func(process);
         }
 
-        for (const gabage of gabageList){
-            this.processList.splice(0, 1, gabage);
+        for (const garbage of gabageList){
+            this.removeProccess(garbage);
         }
+    }
+
+    private removeProccess(garbage: ProcessRecord) {
+        const garbageIndex = this.processList.indexOf(garbage);
+        this.processList.splice(garbageIndex, 1);
     }
 }
 
