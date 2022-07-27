@@ -104,7 +104,7 @@ class EmojiStasticsController{
         if (!(0 < numMinute && numMinute <= maxMinute)){
             say(userLiteral + " invalide input minutes.");   
         }else if  (this.processList.length > maxProcessLength){
-            say(userLiteral + " failed to create new process because of aleready running many processes.");
+            say(userLiteral + " failed to create new process because of already running many processes.");
         }else{
             const newProcess = new ProcessRecord(this.slackAction, numMinute);
             this.processList.append(newProcess);
